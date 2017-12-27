@@ -46,7 +46,7 @@
 				}
 				else{
 					$.ajax({
-						url : '/sampling/getWinningNumberOneByCnt.ax',
+						url : '/sampling/getWinningNumberLteDrwNo.ax',
 						data : searchCnt,
 						type : 'get',
 						dataType : 'json',

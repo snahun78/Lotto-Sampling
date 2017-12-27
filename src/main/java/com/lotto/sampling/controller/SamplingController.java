@@ -1,6 +1,5 @@
 package com.lotto.sampling.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,20 +9,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.lotto.sampling.service.SamplingService;
 import com.lotto.sampling.vo.LottoNumberBaseVo;
 
 @Controller
-@RequestMapping("/sampling")
 public class SamplingController {
 
 	@Autowired
 	private SamplingService service;
 	
-	@RequestMapping(value="/getWinningNumberOneByCnt.ax", method=RequestMethod.GET)
+	@RequestMapping(value="/getWinningNumberLteDrwNo.ax", method=RequestMethod.GET)
 	public void getWinningNumberOneByCnt(@RequestParam int param) {
-		LottoNumberBaseVo result = service.getWinningNumberOneByCnt(param);
+		List<LottoNumberBaseVo> result = service.getWinningNumberLteDrwNo(param);
 		System.out.println("result = " + result.toString());
 	}
 	
@@ -43,13 +42,37 @@ public class SamplingController {
 		}
 	}
 	
-	@RequestMapping("/expectationNumberSampling.ax")
-	public List<LottoNumberBaseVo> expectationNumberSampling(){
-		List<LottoNumberBaseVo> result = new ArrayList<>();
+	@RequestMapping(value="/samplingNumber.ax")
+	public ModelAndView expectationNumberSampling(){
+		ModelAndView mv = new ModelAndView("samplingPage");
 		
-		List<LottoNumberBaseVo> allWinningData = service.expectationNumberSampling();
+		List<LottoNumberBaseVo> result = service.getAllWinningNumber();
+		List<LottoNumberBaseVo> allWinningData = service.expectationNumberSampling(result);
 		
-		return result;
+		mv.addObject("result", result);
+//		mv.addObject("samplingNumber", allWinningData);
+		return mv;
+	}
+	
+	@RequestMapping(value="/samplingNumberByDrwNo.ax")
+	public ModelAndView expectationNumberSamplingByDrwNo(@RequestParam int param){
+		
+		ModelAndView mv = new ModelAndView("samplingPage");
+		
+		List<LottoNumberBaseVo> result = null;
+		
+		if(param > 0) {
+			result = service.getWinningNumberLteDrwNo(param);
+		}
+		else {
+			result = service.getAllWinningNumber();
+		}
+		
+		List<LottoNumberBaseVo> allWinningData = service.expectationNumberSampling(result);
+		
+		mv.addObject("result", result);
+//		mv.addObject("samplingNumber", allWinningData);
+		return mv;
 	}
 	
 }

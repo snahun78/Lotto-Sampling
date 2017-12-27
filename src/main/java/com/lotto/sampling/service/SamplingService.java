@@ -21,9 +21,9 @@ public class SamplingService {
 	@Autowired
 	private SamplingDao dao;
 	
-	public LottoNumberBaseVo getWinningNumberOneByCnt(int cnt) {
+	public List<LottoNumberBaseVo> getWinningNumberLteDrwNo(int cnt) {
 		
-		LottoNumberBaseVo result = dao.getWinningNumberOneByCnt(cnt);
+		List<LottoNumberBaseVo> result = dao.getWinningNumberLteDrwNo(cnt);
 		return result;
 	}
 
@@ -36,13 +36,13 @@ public class SamplingService {
 		dao.insertWinningNumber(param);
 	}
 
-	public List<LottoNumberBaseVo> expectationNumberSampling() {
-		List<LottoNumberBaseVo> winningNumberList = dao.getAllWinningNumber();
+	public List<LottoNumberBaseVo> expectationNumberSampling(List<LottoNumberBaseVo> winningNumberList) {
+//		List<LottoNumberBaseVo> winningNumberList = dao.getAllWinningNumber();
 		
 		StatisticsVo statisticsResult = statisticsNumber(winningNumberList);
 		
 		// Filtering
-		exportTargetNumber(statisticsResult);
+//		exportTargetNumber(statisticsResult);
 		
 		// 가능성이 있는 번호를 추출
 		List<Integer> expectResult = expectNumber(statisticsResult);
@@ -51,7 +51,7 @@ public class SamplingService {
 		List<Integer> sortResult = sortNumber(expectResult);
 		
 		// 경우의 수
-		samplingNumber(sortResult, statisticsResult);
+		samplingNumber(sortResult);
 		
 		return winningNumberList;
 	}
@@ -128,14 +128,14 @@ public class SamplingService {
 			}
 			numberWinningCountMap.put(key, ++count1);
 			
-			key = String.valueOf(bnusNo);
-			if(numberWinningCountMap.containsKey(key)) {
-				count1 = numberWinningCountMap.get(key);
-			}
-			else {
-				count1 = 0;
-			}
-			numberWinningCountMap.put(key, ++count1);
+//			key = String.valueOf(bnusNo);
+//			if(numberWinningCountMap.containsKey(key)) {
+//				count1 = numberWinningCountMap.get(key);
+//			}
+//			else {
+//				count1 = 0;
+//			}
+//			numberWinningCountMap.put(key, ++count1);
 			
 			allCount++;
 		}
@@ -210,7 +210,7 @@ public class SamplingService {
 			String key = iter.next();
 			double value = proMap.get(key);
 			
-			if(value < standardProbability) {
+			if(value > (standardProbability-0.01d) && value < (standardProbability+0.01d)) {
 				expectNumber.add(Integer.parseInt(key));
 			}
 		}
@@ -246,26 +246,7 @@ public class SamplingService {
 		return expectResult;
 	}
 	
-	private void samplingNumber(List<Integer> sortResult, StatisticsVo statisticsResult) {
-		
-//		double standardProbability = statisticsResult.getStandardProbability();
-		Map<String, Double> proMap = statisticsResult.getNumberWinningProbability();
-		Iterator<String> iter = proMap.keySet().iterator();
-		
-		/* 편차가 제일 큰 값을 제외하기 위해 구함 */
-		int exportValue = 0;
-		String key = iter.next();
-		double compareValue = proMap.get(key);
-		
-		while(iter.hasNext()) {
-			key = iter.next();
-			double value = proMap.get(key);
-			
-			if(value < compareValue) {
-				exportValue = Integer.parseInt(key);
-				compareValue = value;
-			}
-		}
+	private void samplingNumber(List<Integer> sortResult) {
 		
 		
 	}

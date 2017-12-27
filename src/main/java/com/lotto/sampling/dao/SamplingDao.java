@@ -21,8 +21,15 @@ public class SamplingDao{
 	
 	public LottoNumberBaseVo getWinningNumberOneByCnt(int cnt) {
 		
-		Query query = new Query(Criteria.where("cnt").is(cnt));
+		Query query = new Query(Criteria.where("drwNo").lte(cnt));
 		LottoNumberBaseVo result = mongoTemplate.findOne(query, LottoNumberBaseVo.class, DB_COLLECTION_NAME);
+		return result;
+	}
+
+	public List<LottoNumberBaseVo> getWinningNumberLteDrwNo(int cnt) {
+		
+		Query query = new Query(Criteria.where("drwNo").lte(cnt));
+		List<LottoNumberBaseVo> result = mongoTemplate.find(query, LottoNumberBaseVo.class, DB_COLLECTION_NAME);
 		return result;
 	}
 	
