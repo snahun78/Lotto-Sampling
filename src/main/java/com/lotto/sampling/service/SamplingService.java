@@ -48,22 +48,23 @@ public class SamplingService {
 		List<Integer> expectResult = expectNumber(statisticsResult);
 		
 		// 정렬
-		List<Integer> sortResult = sortNumber(expectResult);
+		List<Integer> expectList = sortNumber(expectResult);
 		
 		// 경우의 수
-		samplingNumber(sortResult);
+		samplingNumber(expectList);
 		
 		return winningNumberList;
 	}
 	
 	/**
-	 * 당첨된 숫자의 횟수를 기본으로 표준편차를 계산
+	 * 당첨된 숫자의 횟수를 기본으로 Base Data를 구함.
 	 * @param numberList
 	 * @return
 	 */
 	private StatisticsVo statisticsNumber(List<LottoNumberBaseVo> numberList) {
 		
 		int allCount = 0;
+		int totalCountSum = 0;
 		StatisticsVo statistic = new StatisticsVo();
 		Map<String, Integer> numberWinningCountMap = new HashMap<String, Integer>();
 		
@@ -79,13 +80,15 @@ public class SamplingService {
 			String key = String.valueOf(number1);
 			int count1 = 0;
 			if(numberWinningCountMap.containsKey(key)) {
-				count1 = numberWinningCountMap.get(key);				
+				count1 = numberWinningCountMap.get(key);
+				totalCountSum++;
 			}
 			numberWinningCountMap.put(key, ++count1);
 			
 			key = String.valueOf(number2);
 			if(numberWinningCountMap.containsKey(key)) {
 				count1 = numberWinningCountMap.get(key);
+				totalCountSum++;
 			}
 			else {
 				count1 = 0;
@@ -95,6 +98,7 @@ public class SamplingService {
 			key = String.valueOf(number3);
 			if(numberWinningCountMap.containsKey(key)) {
 				count1 = numberWinningCountMap.get(key);
+				totalCountSum++;
 			}
 			else {
 				count1 = 0;
@@ -104,6 +108,7 @@ public class SamplingService {
 			key = String.valueOf(number4);
 			if(numberWinningCountMap.containsKey(key)) {
 				count1 = numberWinningCountMap.get(key);
+				totalCountSum++;
 			}
 			else {
 				count1 = 0;
@@ -113,6 +118,7 @@ public class SamplingService {
 			key = String.valueOf(number5);
 			if(numberWinningCountMap.containsKey(key)) {
 				count1 = numberWinningCountMap.get(key);
+				totalCountSum++;
 			}
 			else {
 				count1 = 0;
@@ -122,26 +128,29 @@ public class SamplingService {
 			key = String.valueOf(number6);
 			if(numberWinningCountMap.containsKey(key)) {
 				count1 = numberWinningCountMap.get(key);
+				totalCountSum++;
 			}
 			else {
 				count1 = 0;
 			}
 			numberWinningCountMap.put(key, ++count1);
 			
-//			key = String.valueOf(bnusNo);
-//			if(numberWinningCountMap.containsKey(key)) {
-//				count1 = numberWinningCountMap.get(key);
-//			}
-//			else {
-//				count1 = 0;
-//			}
-//			numberWinningCountMap.put(key, ++count1);
+			key = String.valueOf(bnusNo);
+			if(numberWinningCountMap.containsKey(key)) {
+				count1 = numberWinningCountMap.get(key);
+				totalCountSum++;
+			}
+			else {
+				count1 = 0;
+			}
+			numberWinningCountMap.put(key, ++count1);
 			
 			allCount++;
 		}
 		
 		statistic.setAllCount(allCount);
 		statistic.setNumberWinningCount(numberWinningCountMap);
+		statistic.setCountAvg((double)totalCountSum/45.0);
 		
 		Set<String> keySet = numberWinningCountMap.keySet();
 		int keySize = keySet.size();
@@ -170,6 +179,7 @@ public class SamplingService {
 	 * 제외할 숫자들을 구함
 	 * @param statisticsResult
 	 */
+	@SuppressWarnings("unused")
 	private StatisticsVo exportTargetNumber(StatisticsVo statisticsResult) {
 		
 //		double standardProbability = statisticsResult.getStandardProbability();
@@ -210,7 +220,19 @@ public class SamplingService {
 			String key = iter.next();
 			double value = proMap.get(key);
 			
-			if(value > (standardProbability-0.01d) && value < (standardProbability+0.01d)) {
+			if(value < standardProbability) {
+				expectNumber.add(Integer.parseInt(key));
+			}
+		}
+		
+		double countAvg = param.getCountAvg();
+		Map<String, Integer> winningMap = param.getNumberWinningCount();
+		Iterator<String> iter2 = winningMap.keySet().iterator();
+		while(iter2.hasNext()) {
+			String key = iter2.next();
+			double value = winningMap.get(key);
+			
+			if(value <= countAvg){
 				expectNumber.add(Integer.parseInt(key));
 			}
 		}
@@ -225,28 +247,34 @@ public class SamplingService {
 	 */
 	private List<Integer> sortNumber(List<Integer> expectResult) {
 		
-		for(int i=0; i<expectResult.size()-1; i++) {
+		List<Integer> sortList = expectResult;
+		
+		for(int i=0; i<sortList.size()-1; i++) {
 			int swapIndex = i;
-			int target = expectResult.get(i);
+			int target = sortList.get(i);
 			
-			for(int j=i+1; j<expectResult.size(); j++) {
-				if(target > expectResult.get(j)) {
-					target = expectResult.get(j);
+			for(int j=i+1; j<sortList.size(); j++) {
+				if(target > sortList.get(j)) {
+					target = sortList.get(j);
 					swapIndex = j;
+				}
+				
+				if(target == sortList.get(j) && swapIndex != j) {
+					sortList.remove(j);
 				}
 			}
 			
 			if(swapIndex != i) {
-				int temp = expectResult.get(i);
-				expectResult.set(i, expectResult.get(swapIndex));
-				expectResult.set(swapIndex, temp);				
+				int temp = sortList.get(i);
+				sortList.set(i, sortList.get(swapIndex));
+				sortList.set(swapIndex, temp);				
 			}
 		}
 		
-		return expectResult;
+		return sortList;
 	}
 	
-	private void samplingNumber(List<Integer> sortResult) {
+	private void samplingNumber(List<Integer> expectList) {
 		
 		
 	}

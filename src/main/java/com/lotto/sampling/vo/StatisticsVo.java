@@ -9,6 +9,7 @@ public class StatisticsVo {
 	private int allCount;
 	private Map<String, Integer> numberWinningCount;
 	private Map<String, Double> numberWinningProbability;
+	private double countAvg;
 	private double standardProbability;
 	
 	public int getTx() {
@@ -40,6 +41,12 @@ public class StatisticsVo {
 	}
 	public void setNumberWinningProbability(Map<String, Double> numberWinningProbability) {
 		this.numberWinningProbability = numberWinningProbability;
+	}
+	public double getCountAvg() {
+		return countAvg;
+	}
+	public void setCountAvg(double countAvg) {
+		this.countAvg = countAvg;
 	}
 	public double getStandardProbability() {
 		return standardProbability;

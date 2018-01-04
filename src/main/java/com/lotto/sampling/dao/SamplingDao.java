@@ -3,6 +3,7 @@ package com.lotto.sampling.dao;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -34,7 +35,10 @@ public class SamplingDao{
 	}
 	
 	public List<LottoNumberBaseVo> getAllWinningNumber(){
-		List<LottoNumberBaseVo> result = mongoTemplate.findAll(LottoNumberBaseVo.class, DB_COLLECTION_NAME);
+//		List<LottoNumberBaseVo> result = mongoTemplate.findAll(LottoNumberBaseVo.class, DB_COLLECTION_NAME);
+		Query query = new Query();
+		query.with(new Sort(Sort.Direction.DESC, "drwNo"));
+		List<LottoNumberBaseVo> result = mongoTemplate.find(query, LottoNumberBaseVo.class, DB_COLLECTION_NAME);
 		return result;
 	}
 	

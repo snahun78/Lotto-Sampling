@@ -47,10 +47,10 @@ public class SamplingController {
 		ModelAndView mv = new ModelAndView("samplingPage");
 		
 		List<LottoNumberBaseVo> result = service.getAllWinningNumber();
-		List<LottoNumberBaseVo> allWinningData = service.expectationNumberSampling(result);
+		List<LottoNumberBaseVo> expectationNumber = service.expectationNumberSampling(result);
 		
 		mv.addObject("result", result);
-//		mv.addObject("samplingNumber", allWinningData);
+		mv.addObject("samplingNumber", expectationNumber);
 		return mv;
 	}
 	
@@ -71,7 +71,7 @@ public class SamplingController {
 		List<LottoNumberBaseVo> allWinningData = service.expectationNumberSampling(result);
 		
 		mv.addObject("result", result);
-//		mv.addObject("samplingNumber", allWinningData);
+		mv.addObject("samplingNumber", allWinningData);
 		return mv;
 	}
 	
