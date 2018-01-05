@@ -7,12 +7,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.google.gson.Gson;
 import com.lotto.sampling.service.SamplingService;
-import com.lotto.sampling.vo.DrwNoVo;
 import com.lotto.sampling.vo.LottoNumberBaseVo;
 
 @Controller
@@ -33,6 +30,7 @@ public class MainController {
 			mv.addObject("lastItem", lastItem);
 		}
 		
+		log.debug("main : success");
 		mv.addObject("count", count);
 		return mv;
 	}

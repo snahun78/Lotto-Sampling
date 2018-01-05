@@ -13,10 +13,15 @@ import org.springframework.stereotype.Service;
 import com.lotto.sampling.dao.SamplingDao;
 import com.lotto.sampling.util.EtcUtil;
 import com.lotto.sampling.vo.LottoNumberBaseVo;
+import com.lotto.sampling.vo.ReqDetailVo;
+import com.lotto.sampling.vo.RequirementVo;
+import com.lotto.sampling.vo.SamplingNumberVo;
 import com.lotto.sampling.vo.StatisticsVo;
 
 @Service
 public class SamplingService {
+	
+	public static Integer[] PRIME_NUMBER = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43};
 
 	@Autowired
 	private SamplingDao dao;
@@ -37,7 +42,6 @@ public class SamplingService {
 	}
 
 	public List<LottoNumberBaseVo> expectationNumberSampling(List<LottoNumberBaseVo> winningNumberList) {
-//		List<LottoNumberBaseVo> winningNumberList = dao.getAllWinningNumber();
 		
 		StatisticsVo statisticsResult = statisticsNumber(winningNumberList);
 		
@@ -48,10 +52,13 @@ public class SamplingService {
 		List<Integer> expectResult = expectNumber(statisticsResult);
 		
 		// 정렬
-		List<Integer> expectList = sortNumber(expectResult);
+		List<Integer> expectList = EtcUtil.sortNumber(expectResult);
+		
+		// 조건
+		RequirementVo reqMent = getRequirement(10);
 		
 		// 경우의 수
-		samplingNumber(expectList);
+		samplingNumber(expectList, reqMent);
 		
 		return winningNumberList;
 	}
@@ -186,6 +193,9 @@ public class SamplingService {
 		Map<String, Double> proMap = statisticsResult.getNumberWinningProbability();
 		Iterator<String> iter = proMap.keySet().iterator();
 		
+		// 최근 10개
+		List<LottoNumberBaseVo> recentList = dao.getWinningNumberByCount(10);
+		
 		/* 편차가 제일 큰 값을 제외하기 위해 구함 */
 		String removeKey = iter.next();
 		double compareValue = proMap.get(removeKey);
@@ -241,41 +251,182 @@ public class SamplingService {
 	}
 	
 	/**
-	 * 오름차순으로 정렬
-	 * @param expectResult
-	 * @return
+	 * 조건을 생성
+	 * @param recentCnt
 	 */
-	private List<Integer> sortNumber(List<Integer> expectResult) {
+	private RequirementVo getRequirement(int recentCnt) {
+		// 최근 10개
+		List<LottoNumberBaseVo> recentList = dao.getWinningNumberByCount(recentCnt);
 		
-		List<Integer> sortList = expectResult;
-		
-		for(int i=0; i<sortList.size()-1; i++) {
-			int swapIndex = i;
-			int target = sortList.get(i);
+		RequirementVo requirement = new RequirementVo();
+		for(int i=0; i<recentList.size(); i++) {
 			
-			for(int j=i+1; j<sortList.size(); j++) {
-				if(target > sortList.get(j)) {
-					target = sortList.get(j);
-					swapIndex = j;
+			LottoNumberBaseVo item = recentList.get(i);
+			ReqDetailVo detail = new ReqDetailVo();
+			
+			// 각회차의 합
+			int tnSum = 0;
+			tnSum = item.getNumber1() + item.getNumber2() + item.getNumber3() + item.getNumber4() + item.getNumber5() + item.getNumber6();
+			detail.setSum(tnSum);
+			
+			// 홀짝의 갯수
+			int evenCnt = 0;
+			int oddCnt = 0;
+			if(item.getNumber1() % 2 == 0) {
+				evenCnt++;
+			}
+			else {
+				oddCnt++;
+			}
+			if(item.getNumber2() % 2 == 0) {
+				evenCnt++;
+			}
+			else {
+				oddCnt++;
+			}
+			if(item.getNumber3() % 2 == 0) {
+				evenCnt++;
+			}
+			else {
+				oddCnt++;
+			}
+			if(item.getNumber4() % 2 == 0) {
+				evenCnt++;
+			}
+			else {
+				oddCnt++;
+			}
+			if(item.getNumber5() % 2 == 0) {
+				evenCnt++;
+			}
+			else {
+				oddCnt++;
+			}
+			if(item.getNumber6() % 2 == 0) {
+				evenCnt++;
+			}
+			else {
+				oddCnt++;
+			}
+			detail.setEvenCnt(evenCnt);
+			detail.setOddCnt(oddCnt);
+			
+			// 소수의 갯수
+			int primeCnt = 0;
+			for(int idx=0; idx<PRIME_NUMBER.length-1; idx++) {
+				if(item.getNumber1() == PRIME_NUMBER[idx]) {
+					primeCnt++;
 				}
-				
-				if(target == sortList.get(j) && swapIndex != j) {
-					sortList.remove(j);
+				else if(item.getNumber2() == PRIME_NUMBER[idx]) {
+					primeCnt++;
+				}
+				else if(item.getNumber3() == PRIME_NUMBER[idx]) {
+					primeCnt++;
+				}
+				else if(item.getNumber4() == PRIME_NUMBER[idx]) {
+					primeCnt++;
+				}
+				else if(item.getNumber5() == PRIME_NUMBER[idx]) {
+					primeCnt++;
+				}
+				else if(item.getNumber6() == PRIME_NUMBER[idx]) {
+					primeCnt++;
 				}
 			}
+			detail.setPrimeNumberCnt(primeCnt);
 			
-			if(swapIndex != i) {
-				int temp = sortList.get(i);
-				sortList.set(i, sortList.get(swapIndex));
-				sortList.set(swapIndex, temp);				
+			requirement.addDetailListItem(detail);
+//			requirement.setTotSum(requirement.getTotSum() + tnSum);
+//			requirement.setTotEvg(requirement.getTotSum()/(i+1));
+			
+		}
+		
+		List<ReqDetailVo> detailList = requirement.getDetailList();
+		List<Integer> sumList = new ArrayList<>();
+		for(int i=0; i<detailList.size(); i++) {
+			ReqDetailVo detilItem = detailList.get(i);
+			sumList.add(detilItem.getSum());
+		}
+		
+		int totSum = 0;
+		double totSumAvg = 0;
+		List<Integer> sortList = EtcUtil.sortNumber(sumList);
+		for(int i=1; i<sortList.size()-1; i++) {
+			totSum += sortList.get(i);
+		}
+		totSumAvg = (totSum / (sortList.size()-2));
+		requirement.setTotSum(totSum);
+		requirement.setTotEvg(totSumAvg);
+		
+		return requirement;
+	}
+	
+	/**
+	 * 추출한 번호를 조건을 적용하여 조합한다.
+	 * @param expectList
+	 * @param reqMent 
+	 */
+	private List<SamplingNumberVo> samplingNumber(List<Integer> expectList, RequirementVo reqMent) {
+		
+		List<SamplingNumberVo> numberList = new ArrayList<SamplingNumberVo>();
+		
+		// 조건
+		double gtNumberSum = reqMent.getTotEvg();
+		
+		for(int a=0; a<expectList.size()-5; a++) {
+			int n1 = expectList.get(a);
+			
+			for(int b=a+1; b<expectList.size()-4; b++) {
+				int n2 = expectList.get(b);
+				
+				for(int c=b+1; c<expectList.size()-3; c++) {
+					int n3 = expectList.get(c);
+					
+					for(int d=c+1; d<expectList.size()-2; d++) {
+						int n4 = expectList.get(d);
+						
+						for(int e=d+1; e<expectList.size()-1; e++) {
+							int n5 = expectList.get(e);
+							
+							for(int f=e+1; f<expectList.size(); f++) {
+								SamplingNumberVo expectNumberVo = new SamplingNumberVo();
+								
+								int n6 = expectList.get(f);
+								int numberSum = n1+n2+n3+n4+n5+n6;
+								
+								boolean isCaseOne = false;
+//								boolean isCaseTwo = false;
+//								boolean isCaseThree = false;
+//								boolean isCaseFore = false;
+								
+								// 조건1
+								if(numberSum > (gtNumberSum-10) && numberSum < (gtNumberSum+10)) {
+									isCaseOne = true;
+								}
+								else {
+									continue;
+								}
+								
+								// 조건2
+								
+								if(isCaseOne) {
+									
+								}
+								expectNumberVo.setNumber1(n1);
+								expectNumberVo.setNumber2(n2);
+								expectNumberVo.setNumber3(n3);
+								expectNumberVo.setNumber4(n4);
+								expectNumberVo.setNumber5(n5);
+								expectNumberVo.setNumber6(n6);
+								
+								numberList.add(expectNumberVo);
+							}
+						}
+					}
+				}
 			}
 		}
 		
-		return sortList;
-	}
-	
-	private void samplingNumber(List<Integer> expectList) {
-		
-		
+		return numberList;
 	}
 }
