@@ -395,12 +395,12 @@ public class SamplingService {
 								int numberSum = n1+n2+n3+n4+n5+n6;
 								
 								boolean isCaseOne = false;
-//								boolean isCaseTwo = false;
-//								boolean isCaseThree = false;
+								boolean isCaseTwo = false;
+								boolean isCaseThree = false;
 //								boolean isCaseFore = false;
 								
 								// 조건1
-								if(numberSum > (gtNumberSum-10) && numberSum < (gtNumberSum+10)) {
+								if(isCase1(numberSum, gtNumberSum)) {
 									isCaseOne = true;
 								}
 								else {
@@ -408,18 +408,30 @@ public class SamplingService {
 								}
 								
 								// 조건2
-								
-								if(isCaseOne) {
-									
+								if(isCase2(n1, n2, n3, n4, n5)) {
+									isCaseTwo = true;
 								}
-								expectNumberVo.setNumber1(n1);
-								expectNumberVo.setNumber2(n2);
-								expectNumberVo.setNumber3(n3);
-								expectNumberVo.setNumber4(n4);
-								expectNumberVo.setNumber5(n5);
-								expectNumberVo.setNumber6(n6);
+								else {
+									continue;
+								}
 								
-								numberList.add(expectNumberVo);
+								// 조건3
+								if(isCase3(n1, n2, n3, n4, n5)) {
+									isCaseThree = true;
+								}
+								else {
+									continue;
+								}
+								
+								if(isCaseOne && isCaseTwo) {
+									expectNumberVo.setNumber1(n1);
+									expectNumberVo.setNumber2(n2);
+									expectNumberVo.setNumber3(n3);
+									expectNumberVo.setNumber4(n4);
+									expectNumberVo.setNumber5(n5);
+									expectNumberVo.setNumber6(n6);
+									numberList.add(expectNumberVo);									
+								}
 							}
 						}
 					}
@@ -428,5 +440,86 @@ public class SamplingService {
 		}
 		
 		return numberList;
+	}
+	
+	/**
+	 * 조건1 : 추출한 숫자의 합
+	 * @param number
+	 * @param target
+	 * @return
+	 */
+	private boolean isCase1(int number, double target) {
+		if(number > (target-10) && number < (target+10)) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 조건 2 : 같은 범위의 숫자 갯수가 4개 이상 제외
+	 * @param n1
+	 * @param n2
+	 * @param n3
+	 * @param n4
+	 * @param n5
+	 * @return
+	 */
+	private boolean isCase2(int n1, int n2, int n3, int n4, int n5) {
+		return true;
+	}
+	
+	/**
+	 * 조건 3 : a.추출한 숫자중 일의 자리가 동일한 숫자가 2개가 초과한 경우의 수 제외 
+	 *         b. 일의 자리 숫자가 동일한 숫자가 2개이고 그 종류가 2가지 이상인 경우 제외
+	 * @param n1
+	 * @param n2
+	 * @param n3
+	 * @param n4
+	 * @param n5
+	 * @return
+	 */
+	private boolean isCase3(int n1, int n2, int n3, int n4, int n5) {
+		
+		int findCount = 0;
+		List<Integer> numberList = new ArrayList<Integer>();
+		numberList.add(n1);
+		numberList.add(n2);
+		numberList.add(n3);
+		numberList.add(n4);
+		numberList.add(n5);
+		
+		for(int i=0; i<numberList.size()-1; i++) {
+			int sameCount = 0;
+			int compareTargetNumber = numberList.get(i);
+			
+			if(compareTargetNumber > 9) {
+				compareTargetNumber = compareTargetNumber % 10;
+			}
+			
+			for(int j=i+1; j<numberList.size(); j++) {
+				int cmprNumber = numberList.get(j);
+				
+				if(cmprNumber > 9) {
+					cmprNumber = cmprNumber % 10;
+				}
+				
+				if(compareTargetNumber == cmprNumber) {
+					sameCount++;
+				}
+				
+				if(sameCount > 2) {
+					return false;
+				}
+				else if(sameCount == 2) {
+					findCount++;
+				}
+			}
+			
+			if(findCount > 1) {
+				return false;
+			}
+		}
+		
+		return true;
 	}
 }
